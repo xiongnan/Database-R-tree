@@ -21,15 +21,28 @@ class IX_IndexHandle {
 public:
     IX_IndexHandle();
     ~IX_IndexHandle();
+    
+    // Add a fileHandle
+    RC AddFileHandle(PF_FileHandle &fileHandle);
+
+    RC AddAttrInfo()
 
     // Insert a new index entry
-    RC InsertEntry(void *pData, const RID &rid);
+    RC InsertEntry(void ** pData, const RID &rid);
 
     // Delete a new index entry
     RC DeleteEntry(void *pData, const RID &rid);
 
     // Force index files to disk
     RC ForcePages();
+
+    RC ChooseLeaf()
+
+private:
+    PF_FileHandle fh;
+    int attrNum;
+    AttrType * attrType;
+    int * attrLength;
 };
 
 //
@@ -76,6 +89,11 @@ public:
 
     // Close an Index
     RC CloseIndex(IX_IndexHandle &indexHandle);
+ 
+ private:
+    PF_Manager pfm;
+    
+
 };
 
 //

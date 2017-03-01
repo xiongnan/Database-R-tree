@@ -1,7 +1,7 @@
 //
 // File:        ix_indexhandle.cc
 // Description: IX_IndexHandle handles manipulations within the index
-// Author:      <Your Name Here>
+// Author:      <Nan Xiong, Liuqing Yang>
 //
 
 #include <unistd.h>
@@ -21,9 +21,31 @@ IX_IndexHandle::~IX_IndexHandle()
   // Implement this
 }
 
-RC IX_IndexHandle::InsertEntry(void *pData, const RID &rid)
+RC AddFileHandle(PF_FileHandle &fileHandle)
 {
-  // Implement this
+  fh = fileHandle;
+  PF_PageHandle pageHandle;
+  fh.GetThisPage(0, pageHandle);
+  char * pData;
+  pageHandle.GetData(pData);
+  
+  //Read attribute from in the first page of index file                             
+  char ** ppData = &pData;
+  // Number of attribute                                                              
+  attrNum = getInt(ppData);
+  attrType = new AttrType[attrNum];
+  attrLength = new int[attrNum];
+
+  for (int i = 0; i < attrNum; i++)
+  {
+      attrType[i] = getAttrType(ppData);
+      attrLength[i] = putInt(ppData);
+  }
+
+}
+RC IX_IndexHandle::InsertEntry(void **ppData, const RID &rid)
+{
+  
 }
 
 RC IX_IndexHandle::DeleteEntry(void *pData, const RID &rid)
@@ -35,3 +57,5 @@ RC IX_IndexHandle::ForcePages()
 {
   // Implement this
 }
+
+
