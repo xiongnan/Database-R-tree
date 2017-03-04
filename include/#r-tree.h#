@@ -1,0 +1,19 @@
+class RTree {
+ public:
+  RTree();
+  RTree~();
+
+  void insertEntry(void * pData);
+  int chooseLeaf(void * pData);
+  
+ private:
+  int root_node;
+  int expand(MBR object, int node);
+  void getChild(int node, int & childNum, int *& childList);
+  bool isLeaf(int node);
+  int adjustTree(int nodeL, int nodeLL);
+  void isFull(int node);
+  void splitNode(int node, MBR object, int nodeL, int nodeLL);
+};
+
+

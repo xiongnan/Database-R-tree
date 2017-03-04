@@ -28,8 +28,7 @@ IX_Manager::~IX_Manager()
 /*
  * Creates a new index given the filename, the index number, attribute type and length.
  */
-RC IX_Manager::CreateIndex(const char *fileName, int indexNo,
-			   int attrNum, AttrType * attrType, int * attrLength)
+RC IX_Manager::CreateIndex(const char * fileName, int indexNo, AttrType attrType, int attrLength)
 {
   std::string indexName = fileName;
   indexName = indexName + "." + std::to_string(indexNo);
@@ -45,7 +44,7 @@ RC IX_Manager::CreateIndex(const char *fileName, int indexNo,
   
   PF_PageHandle pageHandle;
   fileHandle.AllocatePage(pageHandle);
-  
+  /*  
   char * pData;
   pageHandle.GetData(pData);
   
@@ -59,7 +58,7 @@ RC IX_Manager::CreateIndex(const char *fileName, int indexNo,
     putAttrType(ppData, attrType[i]);
     putInt(ppData, attrLength[i]);
   }
-  
+  */
 }
 
 /*

@@ -80,3 +80,16 @@ AttrType getAttrType(char ** pData)
   *ppData = pData;
   return data;
 }
+
+
+void add(int& b){
+  // int b2 = *b
+  b++;
+  // *b = b2;
+}
+
+a = 2;
+add(a)
+a
+*/
+

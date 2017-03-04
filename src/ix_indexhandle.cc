@@ -24,6 +24,7 @@ IX_IndexHandle::~IX_IndexHandle()
 RC AddFileHandle(PF_FileHandle &fileHandle)
 {
   fh = fileHandle;
+  /*
   PF_PageHandle pageHandle;
   fh.GetThisPage(0, pageHandle);
   char * pData;
@@ -39,11 +40,13 @@ RC AddFileHandle(PF_FileHandle &fileHandle)
   for (int i = 0; i < attrNum; i++)
   {
       attrType[i] = getAttrType(ppData);
-      attrLength[i] = putInt(ppData);
+      attrLength[i] = getInt(ppData);
   }
+  */
 
 }
-RC IX_IndexHandle::InsertEntry(void **ppData, const RID &rid)
+
+RC IX_IndexHandle::InsertEntry(void *pData, const RID &rid)
 {
   
 }
@@ -57,5 +60,7 @@ RC IX_IndexHandle::ForcePages()
 {
   // Implement this
 }
+
+
 
 
