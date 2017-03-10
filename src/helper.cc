@@ -1,5 +1,28 @@
 #include "redbase.h"
 
+void putMBR(char ** ppData, MBR& object)
+{
+  char * pData = *ppData;
+  MBR * ipointer = (MBR *)pData;
+  * ipointer = object;
+  ipointer ++;
+  pData = (char *) ipointer;
+  *ppData = pData;
+}
+
+MBR getMBR(char ** ppData)
+{
+  char * pData = *ppData;
+  MBR * ipointer = (MBR *)pData;
+  MBR object = * ipointer;
+  ipointer++;
+  pData = (char *) ipointer;
+  *ppData = pData;
+  return object;
+}
+
+
+
 void putInt(char ** ppData, int data)
 {
   char * pData = *ppData;

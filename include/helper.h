@@ -7,3 +7,6 @@ int getInt(char ** ppData);
 char getChar(char ** ppData);
 float getFloat(char ** pData);
 AttrType getAttrType(char ** pData);
+
+void putMBR(char ** ppData, MBR& object);
+MBR getMBR(char ** ppData);
