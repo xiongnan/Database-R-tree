@@ -34,8 +34,8 @@ class RTree {
   void DeleteEntry(int object_id, MBR mbr);
   int chooseLeaf(MBR object);
 
-  int m;
-  int M;
+  int m = 5;
+  int M = 10;
   
  private:
   int root_node;

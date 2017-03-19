@@ -1,4 +1,5 @@
 #include <set>
+#include <iostream>
 #include <algorithm> 
 #include <stack> 
 #include <vector>
@@ -13,6 +14,29 @@ using namespace std;
 RTree::RTree(PF_FileHandle fileHandle)
 {
   fh = fileHandle;
+  PF_PageHandle pageHandle;
+  fh.AllocatePage(pageHandle);
+  int new_root_id;
+  pageHandle.GetPageNum(new_root_id);
+  char ** ppData = getNodeData(new_root_id);
+  cout << (void *)*ppData << endl;
+  MBR new_root_mbr(0,0,0,0);
+  cout << new_root_mbr.x1 << " " << new_root_mbr.y1 << " " << new_root_mbr.x2 << " "<< new_root_mbr.y2 << endl;
+  cout << "test" << endl;
+  putMBR(ppData,new_root_mbr);
+  cout << "test" << endl;
+  cout << (void *)*ppData << endl;
+  //putInt(ppData, -1); //root's parent
+  //putInt(ppData,0); //number of child
+  root_node = new_root_id; //store root id
+  cout << "initial root: " << root_node << endl;
+
+  ppData = getNodeData(root_node);
+  cout << (void *)*ppData << endl;
+  //MBR mbr = getMBR(ppData);
+  //cout << new_root_mbr.x1 << " " << new_root_mbr.y1 << " " << new_root_mbr.x2 << " "<< new_root_mbr.y2 << endl;
+  //cout << mbr.x1 << " " << mbr.y1 << " " << mbr.x2 << " "<< mbr.y2 << endl;
+
 }
 
 int RTree::chooseLeaf(MBR object)
@@ -57,10 +81,17 @@ bool RTree::isObject(int node)
 
 bool RTree::isLeaf(int node)
 {
+  cout << node << endl;
   char ** ppData = getNodeData(node);
-  getMBR(ppData); //skip MBR
+  MBR mbr = getMBR(ppData); //skip MBR
+  cout << mbr.x1 << " " << mbr.y1 << " " << mbr.x2 << " "<< mbr.y2 << endl;
   getInt(ppData); //skip parent node id
-  getInt(ppData); //skip child number
+  int numOfChild = getInt(ppData); //get child number
+  cout << "num of child:"  << numOfChild << endl;
+  if (numOfChild == 0) //if it is new root
+  {
+    return true;
+  }
   int first_child_node = getInt(ppData); //get first child node#
   return isObject(first_child_node);
 }
@@ -408,8 +439,10 @@ set<int> RTree::split_two_groups(int numOfChild, int * childList, set<int> & all
 
 void RTree::insertEntry(int object_id, MBR mbr)
 {
+  cout << "insert:" << object_id << endl;
   int position;
   position = chooseLeaf(mbr);
+  cout << "found leaf: " << position << endl;
   PF_PageHandle pageHandle;
   fh.AllocatePage(pageHandle);
   int new_object_id;
