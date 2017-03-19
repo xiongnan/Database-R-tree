@@ -25,10 +25,10 @@ public:
     // Add a fileHandle
     RC AddFileHandle(PF_FileHandle &fileHandle);
 
-    RC AddAttrInfo()
+    RC GetFileHandle(PF_FileHandle &fileHandle);
 
     // Insert a new index entry
-    RC InsertEntry(void ** pData, const RID &rid);
+    RC InsertEntry(void * pData, const RID &rid);
 
     // Delete a new index entry
     RC DeleteEntry(void *pData, const RID &rid);
@@ -36,13 +36,8 @@ public:
     // Force index files to disk
     RC ForcePages();
 
-    RC ChooseLeaf()
-
 private:
     PF_FileHandle fh;
-    int attrNum;
-    AttrType * attrType;
-    int * attrLength;
 };
 
 //
@@ -77,8 +72,7 @@ public:
     ~IX_Manager();
 
     // Create a new Index
-    RC CreateIndex(const char *fileName, int indexNo,
-                   AttrType attrType, int attrLength);
+    RC CreateIndex(const char *fileName, int indexNo, AttrType attrType, int attrLength);
 
     // Destroy and Index
     RC DestroyIndex(const char *fileName, int indexNo);

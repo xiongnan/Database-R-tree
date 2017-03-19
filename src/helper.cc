@@ -1,4 +1,5 @@
 #include "redbase.h"
+#include "mbr.h"
 
 void putMBR(char ** ppData, MBR& object)
 {
@@ -41,17 +42,17 @@ void putChar(char ** ppData, char data)
   *ppData = pData;
 }
 
-void putFloat(char * ppData, float data)
+void putFloat(char ** ppData, float data)
 {
   char * pData = *ppData;
-  float * fpointer = (int *)pData;
+  float * fpointer = (float *)pData;
   * fpointer = data;
   fpointer ++;
   pData = (char *) fpointer;
   *ppData = pData;
 }
 
-void putAttrType(char * ppData, AttrType data)
+void putAttrType(char ** ppData, AttrType data)
 {
   char * pData = *ppData;
   AttrType * apointer = (AttrType *)pData;
@@ -81,7 +82,7 @@ char getChar(char ** ppData)
   return data;
 }
 
-float getFloat(char ** pData)
+float getFloat(char ** ppData)
 {
   char * pData = *ppData;
   float *fpointer = (float *)pData;
@@ -93,7 +94,7 @@ float getFloat(char ** pData)
 }
 
 
-AttrType getAttrType(char ** pData)
+AttrType getAttrType(char ** ppData)
 {
   char * pData = *ppData;
   AttrType * apointer = (AttrType *)pData;
@@ -103,16 +104,4 @@ AttrType getAttrType(char ** pData)
   *ppData = pData;
   return data;
 }
-
-
-void add(int& b){
-  // int b2 = *b
-  b++;
-  // *b = b2;
-}
-
-a = 2;
-add(a)
-a
-*/
 

@@ -1,0 +1,11 @@
+/home/ubuntu/redbase/CMakeFiles/rebuild_cache.dir
+/home/ubuntu/redbase/CMakeFiles/ql.dir
+/home/ubuntu/redbase/CMakeFiles/rm.dir
+/home/ubuntu/redbase/CMakeFiles/edit_cache.dir
+/home/ubuntu/redbase/CMakeFiles/sm.dir
+/home/ubuntu/redbase/CMakeFiles/ix.dir
+/home/ubuntu/redbase/CMakeFiles/redbase.dir
+/home/ubuntu/redbase/CMakeFiles/dbcreate.dir
+/home/ubuntu/redbase/CMakeFiles/pf.dir
+/home/ubuntu/redbase/CMakeFiles/parser.dir
+/home/ubuntu/redbase/CMakeFiles/dbdestroy.dir

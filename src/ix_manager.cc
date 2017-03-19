@@ -13,7 +13,6 @@
 #include <sstream>
 #include <cstdio>
 #include "comparators.h"
-#include "helper.h"
 
 IX_Manager::IX_Manager(PF_Manager &pfm) 
 {
@@ -28,8 +27,7 @@ IX_Manager::~IX_Manager()
 /*
  * Creates a new index given the filename, the index number, attribute type and length.
  */
-RC IX_Manager::CreateIndex(const char * fileName, int indexNo, AttrType attrType, int attrLength)
-{
+RC IX_Manager::CreateIndex(const char * fileName, int indexNo, AttrType attrType, int attrLength){
   std::string indexName = fileName;
   indexName = indexName + "." + std::to_string(indexNo);
   
@@ -40,25 +38,10 @@ RC IX_Manager::CreateIndex(const char * fileName, int indexNo, AttrType attrType
     return IX_BADINDEXNAME;
   }
   PF_FileHandle fileHandle;
-  RC rc = pfm.OpenFile(indexName.c_str(), fileHandle);
+  rc = pfm.OpenFile(indexName.c_str(), fileHandle);
   
   PF_PageHandle pageHandle;
   fileHandle.AllocatePage(pageHandle);
-  /*  
-  char * pData;
-  pageHandle.GetData(pData);
-  
-  // Store attribute info in the first page of index file
-  char ** ppData = &pData;
-  // Number of attribute
-  putInt(ppData, attrNum);
-
-  for (int i = 0; i < attrNum; i++)
-  {
-    putAttrType(ppData, attrType[i]);
-    putInt(ppData, attrLength[i]);
-  }
-  */
 }
 
 /*
@@ -102,11 +85,9 @@ RC IX_Manager::OpenIndex(const char *fileName, int indexNo,
  */
 RC IX_Manager::CloseIndex(IX_IndexHandle &indexHandle)
 {
-  std::string indexName =fileName;
-  indexName = indexName + "." + std::to_string(indexNo);
-
   PF_FileHandle fileHandle;
-  RC rc = pfm.CloseFile(indexName.c_str(), fileHandle);
+  indexHandle.GetFileHandle(fileHandle);
+  RC rc = pfm.CloseFile(fileHandle);
   if (rc != 0)
     {
       PF_PrintError(rc);

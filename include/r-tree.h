@@ -1,3 +1,17 @@
+
+#ifndef RTREE_H
+#define RTREE_H
+
+#include <set>
+#include <algorithm>
+#include <stack>
+#include <vector>
+#include "mbr.h"
+#include "pf.h"
+#include "r-tree.h"
+
+using namespace std;
+
 class RTree {
 
   //node structure
@@ -14,11 +28,11 @@ class RTree {
 
 
  public:
-  RTree(PF_FileHandle &fileHandle);
-  RTree~();
+  RTree(PF_FileHandle fileHandle);
 
-  void insertEntry(void * pData);
-  int chooseLeaf(void * pData);
+  void insertEntry(int object_id, MBR mbr);
+  void DeleteEntry(int object_id, MBR mbr);
+  int chooseLeaf(MBR object);
 
   int m;
   int M;
@@ -37,28 +51,38 @@ class RTree {
   int getParent(int node);
   void setParent(int node,int parent);
 
-  MBR getMBR(int node);
-  void setMBR(int node, MBR mbr);
+  MBR getMBRbyNode(int node);
+  void setMBRbyNode(int node, MBR mbr);
   MBR merge_group_mbr(set<int> nodes);
   MBR merge_group_mbr(int * nodes, int n);
+  void expand(MBR object, int node);
 
   bool isLeaf(int node);
   bool isObject(int node);
   char ** getNodeData(int node);
 
-  int adjustTree(int nodeL, int nodeLL);
+  void adjustTree(MBR object, int node);
+  void adjustTree(int L, int LL);
   void isFull(int node);
   void splitNode(int node, void * pData, int nodeL, int nodeLL);
+  int split(int node);
   set<int> get_complement(int numOfChild, int * all_child, set<int> & A);
   int split_helper(int numOfChild, int * childList, int curr, set<int> &temp, set<int> & best);
-  set<int> * split_two_groups(int numOfChild, int * childList, set<int> & all_child);
+  set<int> split_two_groups(int numOfChild, int * childList, set<int> & all_child);
  
   int getObjectID(int node);
 
-  int getLevel(N);
+  int getLevel(int N);
 
   void insertToLevel(int node, int level);
 
+  void condenseTree(int L);
+
+  set<int> findOverlap(MBR mbr);
+
+  bool isOverlap(int node1, MBR mbr2);
+  
 };
 
 
+#endif

@@ -1,0 +1,20 @@
+#include<iostream>
+#include<cstdlib>
+#include "r-tree.h"
+#include "pf.h"
+#include "mbr.h"
+
+using namespace std;
+int  main(){
+  PF_Manager pf_manager;
+  pf_manager.CreateFile("test_file");
+  
+  PF_FileHandle fileHandle;
+  pf_manager.OpenFile("test_file", fileHandle);
+
+  RTree rtree(fileHandle);
+
+  
+  return 0;
+  
+}

@@ -2,9 +2,15 @@
 #include <algorithm> 
 #include <stack> 
 #include <vector>
+#include "mbr.h"
+#include "pf.h"
+#include "r-tree.h"
+#include "helper.h"
+#include "limits.h"
+#include "float.h"
 using namespace std;
 
-RTree::RTree(PF_FileHandle &fileHandle)
+RTree::RTree(PF_FileHandle fileHandle)
 {
   fh = fileHandle;
 }
@@ -12,12 +18,12 @@ RTree::RTree(PF_FileHandle &fileHandle)
 int RTree::chooseLeaf(MBR object)
 {
   int curr_node = root_node;
-  while(!isleaf(curr_node)){
+  while(!isLeaf(curr_node)){
     int childNum;
     int * childList;
     getChildList(curr_node, childNum, childList);
     int min_child = 0;
-    int min_area = Maxvalue;
+    int min_area = INT_MAX;
     for (int i = 0 ;i < childNum ; i++){
       int temp = calculateExpand(object, childList[i]);
       if (temp < min_area){
@@ -35,7 +41,7 @@ char ** RTree::getNodeData(int node)
   PF_PageHandle pageHandle;
   fh.GetThisPage(node,pageHandle);
   char * pData;
-  pageHandle.GetData (pdata);
+  pageHandle.GetData (pData);
   char ** ppData = &pData;
   return ppData;
 }
@@ -106,7 +112,7 @@ void RTree::addChild(int node, int child_id)
   getMBR(ppData);//skip MBR
   getInt(ppData); //skip parent node id
   char ** tmp = ppData;
-  numOfChild = getInt(ppData);
+  int numOfChild = getInt(ppData);
   putInt(tmp, numOfChild + 1);
   for (int i = 0; i < numOfChild-1; i++){
     getInt(ppData);
@@ -120,7 +126,7 @@ void RTree::removeChild(int node, int child_id)
   getMBR(ppData);//skip MBR
   getInt(ppData); //skip parent node id
   char ** tmp = ppData;
-  numOfChild = getInt(ppData);
+  int numOfChild = getInt(ppData);
   putInt(tmp, numOfChild - 1);
   char * pData = * ppData;
   int * ipointer = (int *) pData;
@@ -150,16 +156,16 @@ int RTree::getParent(int node)
   return getInt(ppData);
 }
 
-MBR RTree::getMBR(int node)
+MBR RTree::getMBRbyNode(int node)
 {
   char ** ppData = getNodeData(node);
   return getMBR(ppData);//skip MBR
 }
 
-void RTree::setMBR(int node, MBR mbr)
+void RTree::setMBRbyNode(int node, MBR mbr)
 {
   char ** ppData = getNodeData(node);
-  putMBR(ppData);//skip MBR
+  putMBR(ppData, mbr);
 }
 
 void RTree::adjustTree(MBR object, int node)
@@ -173,7 +179,7 @@ void RTree::adjustTree(MBR object, int node)
     node = parent_id;
     parent_id = getParent(node);
   }
-  expand(node);
+  expand(object, node);
 
 }
 
@@ -265,7 +271,8 @@ int RTree::split(int node)
   //update node's child to A
   //update mbr of node
   char ** ppData = getNodeData(node);
-  putMBR(ppData, merge_group_mbr(A));
+  MBR temp = merge_group_mbr(A);
+  putMBR(ppData, temp);
   getInt(ppData); //skip parent id
   putInt(ppData, A.size()); //set num of child
   for (set<int>::iterator it=A.begin();it!=A.end();++it){
@@ -282,7 +289,8 @@ int RTree::split(int node)
   ppData = getNodeData(new_node_id);
   int node_parent = getParent(node);
   //update mbr of new node
-  putMBR(ppData, merge_group_mbr(B)); //set new mbr
+  temp = merge_group_mbr(B);
+  putMBR(ppData, temp); //set new mbr
   //set parent id of new node
   putInt(ppData, node_parent); //set parent to be as same as parent of node
   putInt(ppData, B.size()); //set num of child
@@ -325,8 +333,8 @@ int RTree::split_helper(int numOfChild, int * childList, int curr, set<int> &tem
     int area2 = (mbr2.x2 - mbr2.x1) * (mbr2.y2 - mbr2.y1);
     return area1 + area2;
   }
-  set<int> * best1 = new set<int>();
-  set<int> * best2 = new set<int>();
+  set<int> best1;
+  set<int> best2;
   //choose curr
   temp.insert(childList[curr]);
   int area1 = split_helper(numOfChild, childList, curr + 1, temp, best1);
@@ -353,8 +361,8 @@ MBR RTree::merge_group_mbr(set<int> nodes)
   float new_y1 = FLT_MAX ;
   float new_x2 = FLT_MIN ;
   float new_y2 = FLT_MIN ;
-  for (set<int>::iterator it=nodes.begin();it!=nodes.end();++i){
-    MBR cur = getMBR(*it);
+  for (set<int>::iterator it=nodes.begin();it!=nodes.end();++it){
+    MBR cur = getMBRbyNode(*it);
     new_x1 = min(new_x1,cur.x1);
     new_y1 = min(new_y1,cur.y1);
     new_x2 = max(new_x2,cur.x2);
@@ -376,7 +384,7 @@ MBR RTree::merge_group_mbr(int * nodes, int n)
   float new_x2 = FLT_MIN ;
   float new_y2 = FLT_MIN ;
   for (int i = 0; i < n; i++){
-    MBR cur = getMBR(nodes[i]);
+    MBR cur = getMBRbyNode(nodes[i]);
     new_x1 = min(new_x1,cur.x1);
     new_y1 = min(new_y1,cur.y1);
     new_x2 = max(new_x2,cur.x2);
@@ -390,7 +398,7 @@ MBR RTree::merge_group_mbr(int * nodes, int n)
 }
 
 
-set<int> * RTree::split_two_groups(int numOfChild, int * childList, set<int> & all_child)
+set<int> RTree::split_two_groups(int numOfChild, int * childList, set<int> & all_child)
 {
   set<int> temp; 
   set<int> best; 
@@ -445,7 +453,7 @@ void RTree::DeleteEntry(int object_id, MBR mbr){
   }
 
   removeChild(getParent(target_node_id), target_node_id);
-  condenseTree(L);
+  condenseTree(getParent(target_node_id));
   int numOfChild = 0;
   int * childList;
   getChildList(root_node,numOfChild,childList);
@@ -461,7 +469,7 @@ void RTree::condenseTree(int L){
   vector<int> level;
   vector<set<int>> Q;
   while (N != root_node){
-    P = getParent(N);
+    int P = getParent(N);
 
     int numOfChild = 0;
     int * childList;
@@ -486,20 +494,22 @@ void RTree::condenseTree(int L){
       }
       removeChild(P, N);
     } else {
-      setMBR(N, merge_group_mbr(childList, numOfChild));
+      MBR temp = merge_group_mbr(childList, numOfChild);
+      setMBRbyNode(N, temp);
     }
     N = P;
   }
 
   //re-insert Q to tree
   for (int i = 0; i < level.size(); i++) {
+    set<int> tQ = Q[i];
     if (level[i] == -1) { //leaf level
-      for (set<int>::iterator it=Q.begin(); it!=Q.end(); ++it){
-        insertEntry(getObjectID(*it), getMBR(*it));
+      for (set<int>::iterator it=tQ.begin(); it!=tQ.end(); ++it){
+        insertEntry(getObjectID(*it), getMBRbyNode(*it));
       }
     } else {
-      curr_level = level[i];
-      for (set<int>::iterator it=Q.begin(); it!=Q.end(); ++it){
+      int curr_level = level[i];
+      for (set<int>::iterator it=tQ.begin(); it!=tQ.end(); ++it){
         insertToLevel(*it, curr_level);
       }
     }
@@ -509,13 +519,13 @@ void RTree::condenseTree(int L){
 void RTree::insertToLevel(int node, int level) {
   int curr_node = root_node;
   int curr_level = 0;
-  MBR mbr = getMBR(node);
+  MBR mbr = getMBRbyNode(node);
   while(curr_level < level){
     int childNum;
     int * childList;
     getChildList(curr_node, childNum, childList);
     int min_child = 0;
-    int min_area = Maxvalue;
+    int min_area = INT_MAX;
     for (int i = 0 ;i < childNum ; i++){
       int temp = calculateExpand(mbr, childList[i]);
       if (temp < min_area){
@@ -532,13 +542,14 @@ void RTree::insertToLevel(int node, int level) {
     int numOfChild = 0;
     int * childList;
     getChildList(curr_node, numOfChild, childList);
-    setMBR(curr_node, merge_group_mbr(childList, numOfChild));
+    MBR temp = merge_group_mbr(childList, numOfChild);
+    setMBRbyNode(curr_node, temp);
     curr_node = getParent(curr_node);
   }
 
 }
 
-int RTree::getLevel(N){
+int RTree::getLevel(int N){
   int level = 0;
   while (N != root_node) {
     N = getParent(N);
@@ -597,7 +608,7 @@ set<int> RTree::findOverlap(MBR mbr){
 
 bool RTree::isOverlap(int node1, MBR mbr2)
 {
-  MBR mbr1 = getMBR(node1);
+  MBR mbr1 = getMBRbyNode(node1);
 
   //  1x1 ... 1x2   2x1 .... 2x2
   //  2x1 ... 2x2   1x1 .... 1x2

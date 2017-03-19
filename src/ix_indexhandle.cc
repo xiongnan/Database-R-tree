@@ -14,6 +14,7 @@
 IX_IndexHandle::IX_IndexHandle()
 {
   // Implement this
+
 }
 
 IX_IndexHandle::~IX_IndexHandle()
@@ -21,29 +22,14 @@ IX_IndexHandle::~IX_IndexHandle()
   // Implement this
 }
 
-RC AddFileHandle(PF_FileHandle &fileHandle)
+RC IX_IndexHandle::AddFileHandle(PF_FileHandle &fileHandle)
 {
   fh = fileHandle;
-  /*
-  PF_PageHandle pageHandle;
-  fh.GetThisPage(0, pageHandle);
-  char * pData;
-  pageHandle.GetData(pData);
-  
-  //Read attribute from in the first page of index file                             
-  char ** ppData = &pData;
-  // Number of attribute                                                              
-  attrNum = getInt(ppData);
-  attrType = new AttrType[attrNum];
-  attrLength = new int[attrNum];
+}
 
-  for (int i = 0; i < attrNum; i++)
-  {
-      attrType[i] = getAttrType(ppData);
-      attrLength[i] = getInt(ppData);
-  }
-  */
-
+RC IX_IndexHandle::GetFileHandle(PF_FileHandle &fileHandle)
+{
+  fileHandle = fh;
 }
 
 RC IX_IndexHandle::InsertEntry(void *pData, const RID &rid)

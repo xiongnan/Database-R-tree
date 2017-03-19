@@ -61,6 +61,8 @@ set(IX_SOURCES
 		src/ix_indexhandle.cc
 		src/ix_indexscan.cc
 		src/ix_error.cc
+		src/r-tree.cc
+		src/helper.cc
 	)
 set (PARSER_SOURCES
 		src/nodes.cc
