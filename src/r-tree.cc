@@ -92,11 +92,11 @@ bool RTree::isObject(int node)
 // Determine if a node is leaf node
 bool RTree::isLeaf(int node)
 {
-  int childNum;
+  int numOfChild;
   int * childList;
-  getChildList(node, childNum, childList);
+  getChildList(node, numOfChild, childList);
 
-  cout << "num of child:"  << childNum << endl;
+  cout << "num of child:"  << numOfChild << endl;
   if (numOfChild == 0) //if it is new root
   {
     return true;
