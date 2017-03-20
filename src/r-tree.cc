@@ -15,7 +15,8 @@ RTree::RTree(PF_FileHandle fileHandle)
 {
   // Get file handle for this 
   fh = fileHandle;
-  
+  m = 2;
+  M = 5;
 }
 
 void RTree::createTree()
@@ -31,8 +32,9 @@ void RTree::createTree()
   setParent(root_node, -1);
 
   // Set number of Child to be 0
-  setNumOFChild(root_node, 0);
+  setNumOfChild(root_node, 0);
 
+  printNode(root_node);
 }
 
 void RTree::insertEntry(int object_id, MBR mbr)
@@ -44,6 +46,7 @@ void RTree::insertEntry(int object_id, MBR mbr)
 
   // Create a new node
   int new_node_id = createNewNode();
+  
   setMBR(new_node_id, mbr);
   setParent(new_node_id, position);
   setObjectID(new_node_id,-1*object_id);
@@ -56,6 +59,10 @@ void RTree::insertEntry(int object_id, MBR mbr)
 
   // Split if necessary
   adjustTree(position);
+
+  cout << "new obj id:" << new_node_id <<endl;
+  //printNode(root_node);
+  //printNode(new_node_id);
 }
 
 // Choose a leaf node to insert
@@ -96,7 +103,7 @@ bool RTree::isLeaf(int node)
   int * childList;
   getChildList(node, numOfChild, childList);
 
-  cout << "num of child:"  << numOfChild << endl;
+  //cout << "num of child:"  << numOfChild << endl;
   if (numOfChild == 0) //if it is new root
   {
     return true;
@@ -145,13 +152,18 @@ void RTree::expand(int node, MBR mbr)
 // Adjust Tree by checking from node
 void RTree::adjustTree(int node)
 {
-  while (node != root_node && getNumOFChild(node) >= M)
+  while (node != root_node && getNumOfChild(node) >= M)
   {
-    int new_node_id = split(node);
-    node = getParent(node);
+    cout << "split:" << node  << endl;
+    int new_node = split(node);
+    int parent = getParent(node);
+    setParent(new_node, parent);
+    addChild(parent, new_node);
+    node = parent;
 
   }
-  if (node == root_node && getNumOFChild(node) >= M) {
+  if (node == root_node && getNumOfChild(node) >= M) {
+    cout << "split root" << endl; 
     int new_node = split(node);
     int new_root = createNewNode();
     MBR new_root_mbr = merge_two_nodes(new_node, node);
@@ -161,6 +173,11 @@ void RTree::adjustTree(int node)
     addChild(new_root, new_node);
     setParent(node, new_root);
     setParent(new_node, new_root);
+
+    cout << "new root:" << new_root << endl;
+    cout << "new node:" << new_node << endl;
+    cout << "old_root:" << node << endl;
+
   }
 }
 
@@ -202,26 +219,22 @@ int RTree::split(int node)
   //update mbr of node
   MBR mbr = merge_group_mbr(A);
   setMBR(node, mbr);
-  setNumOFChild(node, A.size());
+  setNumOfChild(node, A.size());
   for (set<int>::iterator it=A.begin();it!=A.end();++it){
     addChild(node, *it);
   }
 
   //create a new node
   int new_node = createNewNode();
-  setParent(new_node, getParent(node));
   mbr = merge_group_mbr(B);
   setMBR(new_node, mbr);
-  setNumOFChild(new_node, B.size());
+  setNumOfChild(new_node, B.size());
 
   //update node's child to B
   for (set<int>::iterator it=B.begin();it!=B.end();++it){
     setParent(*it, new_node);
     addChild(new_node, *it);
-  }
-   //update new node's parent's child list
-  addChild(getParent(node), new_node);
-  
+  }  
   return new_node;
 }
 
@@ -583,6 +596,7 @@ int RTree::getObjectID(int node)
   char * pData = getNodeData(node);
   int * iData = (int *) pData;
   iData += 4; //skip MBR part
+  iData += 1; //skip parent id part
   int object_id = *iData;
   return object_id;
 }
@@ -593,6 +607,7 @@ void RTree::setObjectID(int node,int object_id)
   char * pData = getNodeData(node);
   int * iData = (int *) pData;
   iData += 4; //skip MBR part
+  iData += 1; //skip parent id part
   *iData = object_id;
 }
 
@@ -658,7 +673,7 @@ void RTree::removeChild(int node, int child_id)
 }
 
 // Get number of child of a node
-int RTree::getNumOFChild(int node)
+int RTree::getNumOfChild(int node)
 {
   char * pData = getNodeData(node);
   int * iData = (int *) pData;
@@ -670,7 +685,7 @@ int RTree::getNumOFChild(int node)
 }
 
 // Set number of child of a node
-void RTree::setNumOFChild(int node, int numOfChild)
+void RTree::setNumOfChild(int node, int numOfChild)
 {
   char * pData = getNodeData(node);
   int * iData = (int *) pData;
@@ -680,4 +695,34 @@ void RTree::setNumOFChild(int node, int numOfChild)
   *iData = numOfChild;
 }
 
+void RTree::printNode(int node)
+{
+  if (isObject(node))
+  {
+    cout << "OBJECT" << endl;
+    MBR mbr = getMBR(node);
+    cout << "MBR:" << mbr.x1 << ","
+	 << mbr.y1 << ","
+	 << mbr.x2 << ","
+	 << mbr.y2 << endl;
+    cout << "Parent:" << getParent(node) << endl;
+    cout << "Object ID:" << (int)(getObjectID(node) * -1) << endl;
+  } else {
+    cout << "NODE" <<endl;
+    MBR mbr = getMBR(node);
+    cout << "MBR:" << mbr.x1 <<","
+	 << mbr.y1 << ","
+	 << mbr.x2 << ","
+	 << mbr.y2 << endl;
+    cout << "Parent:" << getParent(node) << endl;
+    cout << "Number of Child:" << getNumOfChild(node) <<endl;
+    int *  childlist;
+    int numOfChild;
+    getChildList(node, numOfChild, childlist);
+    for (int i = 0; i < numOfChild; i++)
+    {
+      cout << "Child:" << childlist[i] << endl;;
+    }
+  }
 
+}

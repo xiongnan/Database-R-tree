@@ -13,20 +13,17 @@ int  main(){
   pf_manager.OpenFile("test_file", fileHandle);
 
   RTree rtree(fileHandle);
-  /*    
-  MBR mbr1(1,1,2,2);
-  int id1 = 1;
+  rtree.createTree();
   
-  char * pData = new char[100];
-  cout << (void*)pData << endl;
-  char **ppData = &pData;
-  putMBR(ppData, mbr1);
-  cout << (void*)pData << endl;
-  ppData= &pData;
-  MBR mbr = getMBR(ppData);
-  cout << mbr.x1 << " " << mbr.y1 << " " << mbr.x2 << " "<< mbr.y2 << endl;
-    // rtree.insertEntry(id1, mbr1);
-    */
+  for (int i = 0; i < 10; i++) {
+    MBR mbr1(1+i,1+i,2+i,2+i);
+    int id1 = i+1;
+    rtree.insertEntry(id1, mbr1);
+  }
+
+  for (int i = 1; i < 10; i++) {
+    //  rtree.printNode(i);
+  }
   return 0;
   
 }

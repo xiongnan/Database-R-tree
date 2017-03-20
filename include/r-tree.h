@@ -14,18 +14,25 @@ using namespace std;
 
 class RTree {
 
-  //node structure
-  //(1) MBR
-  //(2) Parent id (root's parent is -1)
-  //(3) Num of Child
-  //(4) 1st child id
-  //(5) ....
+  /*node structure
+    (1) MBR.x1
+    (2) MBR.y1
+    (3) MBR.x2
+    (4) MBR.y2
+    (5) Parent id (root's parent is -1)
+    (6) Num of Child
+    (7) 1st child id
+    (8) ....
+  */
 
-  //object structure
-  //(1) MBR
-  //(2) Parent id
-  //(3) object id (real object id * -1)
-
+  /* object structure
+     (1) MBR.x1 
+     (2) MBR.y1 
+     (3) MBR.x2
+     (4) MBR.y2
+     (5) Parent id
+     (6) object id (real object id * -1)
+  */
 
  public:
   RTree(PF_FileHandle fileHandle);
@@ -34,8 +41,11 @@ class RTree {
   void DeleteEntry(int object_id, MBR mbr);
   
 
-  int m = 5;
-  int M = 10;
+  // For debug                                                                                       
+  void printNode(int node);
+
+  int m;
+  int M;
   
  private:
   
@@ -110,15 +120,14 @@ class RTree {
   void getChildList(int node, int & numOfChild, int *& childList);
   void addChild(int node, int child_id);
   void removeChild(int node, int child_id);
-  int getNumOFChild(int node);
-  void setNumOFChild(int node, int numOfChild);
+  int getNumOfChild(int node);
+  void setNumOfChild(int node, int numOfChild);
 
 
   // Object-related
   int getObjectID(int node);
   void setObjectID(int node,int object_id);
 
-  
 };
 
 
