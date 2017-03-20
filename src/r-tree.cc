@@ -96,7 +96,7 @@ bool RTree::isLeaf(int node)
   int * childList;
   getChildList(node, childNum, childList);
 
-  cout << "num of child:"  << numOfChild << endl;
+  cout << "num of child:"  << childNum << endl;
   if (numOfChild == 0) //if it is new root
   {
     return true;
@@ -208,21 +208,21 @@ int RTree::split(int node)
   }
 
   //create a new node
-  int new_node_id = createNewNode();
-  setParent(new_node_id, getParent(node));
+  int new_node = createNewNode();
+  setParent(new_node, getParent(node));
   mbr = merge_group_mbr(B);
-  setMBR(new_node_id, mbr);
-  setNumOFChild(new_node_id, B.size());
+  setMBR(new_node, mbr);
+  setNumOFChild(new_node, B.size());
 
   //update node's child to B
   for (set<int>::iterator it=B.begin();it!=B.end();++it){
-    setParent(*it, new_node_id);
-    putInt(ppData, *it);
+    setParent(*it, new_node);
+    addChild(new_node, *it);
   }
    //update new node's parent's child list
   addChild(getParent(node), new_node_id);
   
-  return new_root_id;
+  return new_node;
 }
 
 // Find best split
@@ -508,7 +508,6 @@ int RTree::getLevel(int node){
 
 int RTree::createNewNode()
 {
-  fh = fileHandle;
   PF_PageHandle pageHandle;
   fh.AllocatePage(pageHandle);
   int new_root_id;

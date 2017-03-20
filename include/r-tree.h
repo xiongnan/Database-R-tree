@@ -29,7 +29,7 @@ class RTree {
 
  public:
   RTree(PF_FileHandle fileHandle);
-  void RTree::createTree();
+  void createTree();
   void insertEntry(int object_id, MBR mbr);
   void DeleteEntry(int object_id, MBR mbr);
   
@@ -59,7 +59,7 @@ class RTree {
   // Expand node by adding mbr
   void expand(int node, MBR mbr);
   // Adjust Tree by checking from node
-  void adjustTree(int L, int LL);
+  void adjustTree(int node);
   // Split node into two nodes
   int split(int node);
   // Find best split
@@ -67,7 +67,7 @@ class RTree {
   // Split helper for split_two_groups
   int split_helper(int numOfChild, int * childList, int curr, set<int> &temp, set<int> & best);
   // Merge the mbr of two node and return
-  MBRR merge_two_nodes(int node1, int node2);
+  MBR merge_two_nodes(int node1, int node2);
   // Merge a group of node into a mbr
   MBR merge_group_mbr(set<int> nodes);
   // Get complement of a set of nodes
@@ -96,7 +96,7 @@ class RTree {
   // Create a new node
   int createNewNode();
   // Node data pointer
-  char ** getNodeData(int node);
+  char * getNodeData(int node);
 
   // MBR-related
   MBR getMBR(int node);
