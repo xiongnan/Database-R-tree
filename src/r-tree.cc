@@ -154,7 +154,7 @@ void RTree::adjustTree(int node)
   if (node == root_node && getNumOFChild(node) >= M) {
     int new_node = split(node);
     int new_root = createNewNode();
-    MBR new_root_mbr = merge_two_nodes(L,LL);
+    MBR new_root_mbr = merge_two_nodes(new_node, node);
     setMBR(new_root,new_root_mbr);
     setParent(new_root, -1);
     addChild(new_root, node);
@@ -220,7 +220,7 @@ int RTree::split(int node)
     addChild(new_node, *it);
   }
    //update new node's parent's child list
-  addChild(getParent(node), new_node_id);
+  addChild(getParent(node), new_node);
   
   return new_node;
 }
@@ -560,7 +560,7 @@ void RTree::setMBR(int node, MBR mbr)
 // Get parent id of a node
 int RTree::getParent(int node)
 {
-  char * ppData = getNodeData(node);
+  char * pData = getNodeData(node);
   int * iData = (int *) pData;
   iData += 4; //skip MBR part
   int parent_id = *iData;
@@ -570,7 +570,7 @@ int RTree::getParent(int node)
 // Set parent id to a node
 void RTree::setParent(int node,int parent_id)
 {
-  char * ppData = getNodeData(node);
+  char * pData = getNodeData(node);
   int * iData = (int *) pData;
   iData += 4; //skip MBR part
   *iData = parent_id;
@@ -580,7 +580,7 @@ void RTree::setParent(int node,int parent_id)
 // Get object id of a node
 int RTree::getObjectID(int node)
 {
-  char * ppData = getNodeData(node);
+  char * pData = getNodeData(node);
   int * iData = (int *) pData;
   iData += 4; //skip MBR part
   int object_id = *iData;
@@ -590,7 +590,7 @@ int RTree::getObjectID(int node)
 // Set object id to a node
 void RTree::setObjectID(int node,int object_id)
 {
-  char * ppData = getNodeData(node);
+  char * pData = getNodeData(node);
   int * iData = (int *) pData;
   iData += 4; //skip MBR part
   *iData = object_id;
@@ -599,7 +599,7 @@ void RTree::setObjectID(int node,int object_id)
 // Get child list of a node
 void RTree::getChildList(int node, int & numOfChild, int *& childList)
 {
-  char * ppData = getNodeData(node);
+  char * pData = getNodeData(node);
   int * iData = (int *) pData;
   iData += 4; //skip MBR part
   iData += 1; //skip parent id part
@@ -616,7 +616,7 @@ void RTree::getChildList(int node, int & numOfChild, int *& childList)
 // Add a new child to a node
 void RTree::addChild(int node, int child_id)
 {
-  char * ppData = getNodeData(node);
+  char * pData = getNodeData(node);
   int * iData = (int *) pData;
   iData += 4; //skip MBR part
   iData += 1; //skip parent id part
@@ -634,7 +634,7 @@ void RTree::addChild(int node, int child_id)
 // Remove a child from a node
 void RTree::removeChild(int node, int child_id)
 {
-  char * ppData = getNodeData(node);
+  char * pData = getNodeData(node);
   int * iData = (int *) pData;
   iData += 4; //skip MBR part
   iData += 1; //skip parent id part
@@ -660,7 +660,7 @@ void RTree::removeChild(int node, int child_id)
 // Get number of child of a node
 int RTree::getNumOFChild(int node)
 {
-  char * ppData = getNodeData(node);
+  char * pData = getNodeData(node);
   int * iData = (int *) pData;
   iData += 4; //skip MBR part
   iData += 1; //skip parent id part
@@ -672,7 +672,7 @@ int RTree::getNumOFChild(int node)
 // Set number of child of a node
 void RTree::setNumOFChild(int node, int numOfChild)
 {
-  char * ppData = getNodeData(node);
+  char * pData = getNodeData(node);
   int * iData = (int *) pData;
   iData += 4; //skip MBR part
   iData += 1; //skip parent id part
