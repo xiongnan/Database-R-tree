@@ -39,14 +39,13 @@ void RTree::createTree()
 
 void RTree::insertEntry(int object_id, MBR mbr)
 {
+  
   //cout << "insert:" << object_id << endl;
   int position;
   position = chooseLeaf(mbr);
-  //cout << "found leaf: " << position << endl;
-
+ 
   // Create a new node
-  int new_node_id = createNewNode();
-  cout << "new obj id:" << new_node_id <<endl;
+  int new_node_id = createNewNode(); 
   setMBR(new_node_id, mbr);
   setParent(new_node_id, position);
   setObjectID(new_node_id,-1*object_id);
@@ -77,7 +76,7 @@ int RTree::chooseLeaf(MBR object)
     for (int i = 0 ;i < childNum ; i++){
       int temp = calculateExpand(object, childList[i]);
       if (temp < min_area){
-	       min_child = i;
+	       min_child = childList[i];
 	       min_area = temp;
       }
     }
@@ -392,7 +391,6 @@ set<int> RTree::findOverlap(MBR mbr){
   printNode(root_node);
   if (isOverlap(root_node, mbr)) {
     s.push(root_node);
-    cout << "push root" << endl;
   }
   while (!s.empty()){
     int temp = s.top();
@@ -409,7 +407,7 @@ set<int> RTree::findOverlap(MBR mbr){
             result.insert(childList[i]);
           } else { //not leaf
             s.push(childList[i]);
-	    cout << "push:" <<childList[i] <<endl;
+	    
 	  }
         }
     }
@@ -437,7 +435,6 @@ bool RTree::isOverlap(int node1, MBR mbr2)
 
 // Adjust tree after delete
 void RTree::condenseTree(int L){
-  cout << "condense:" << L << endl;
   int N = L;
   vector<int> level;
   vector<set<int>> Q;
@@ -453,7 +450,7 @@ void RTree::condenseTree(int L){
         set<int> tQ;
         level.push_back(-1);
         for (int i = 0; i < numOfChild; i++){
-          tQ.insert(childList[i]);
+	  tQ.insert(childList[i]);
         }
         Q.push_back(tQ);
       } else {
@@ -466,9 +463,6 @@ void RTree::condenseTree(int L){
         Q.push_back(tQ);
       }
       removeChild(P, N);
-    } else {
-      MBR temp = merge_group_mbr(childList, numOfChild);
-      setMBR(N, temp);
     }
     N = P;
   }
@@ -478,7 +472,7 @@ void RTree::condenseTree(int L){
     set<int> tQ = Q[i];
     if (level[i] == -1) { //leaf level
       for (set<int>::iterator it=tQ.begin(); it!=tQ.end(); ++it){
-        insertEntry(getObjectID(*it), getMBR(*it));
+        insertEntry(getObjectID(*it) * (-1), getMBR(*it));
       }
     } else {
       int curr_level = level[i];
@@ -517,7 +511,7 @@ MBR RTree::merge_group_mbr(int * nodes, int n)
 // Insert node to level of tree
 void RTree::insertToLevel(int node, int level) {
   int curr_node = root_node;
-  int curr_level = 0;
+  int curr_level = 1;
   MBR mbr = getMBR(node);
   while(curr_level < level){
     int childNum;
@@ -528,7 +522,7 @@ void RTree::insertToLevel(int node, int level) {
     for (int i = 0 ;i < childNum ; i++){
       int temp = calculateExpand(mbr, childList[i]);
       if (temp < min_area){
-         min_child = i;
+         min_child = childList[i];
          min_area = temp;
       }
     }
@@ -537,14 +531,7 @@ void RTree::insertToLevel(int node, int level) {
   }
   addChild(curr_node, node);
   setParent(node, curr_node);
-  while (curr_node != -1) {
-    int numOfChild = 0;
-    int * childList;
-    getChildList(curr_node, numOfChild, childList);
-    MBR temp = merge_group_mbr(childList, numOfChild);
-    setMBR(curr_node, temp);
-    curr_node = getParent(curr_node);
-  }
+  recursiveMBRAdjust(curr_node);
 
 }
 

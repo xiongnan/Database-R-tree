@@ -31,7 +31,7 @@ int  main(){
   rtree.deleteEntry(4, MBR(4,4,5,5));
   
   
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < 9; i++) {
     if (i == 1) continue;
     cout << endl;
     rtree.printNode(i);
