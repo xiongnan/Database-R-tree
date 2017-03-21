@@ -34,33 +34,32 @@ void RTree::createTree()
   // Set number of Child to be 0
   setNumOfChild(root_node, 0);
 
-  printNode(root_node);
+  //printNode(root_node);
 }
 
 void RTree::insertEntry(int object_id, MBR mbr)
 {
-  cout << "insert:" << object_id << endl;
+  //cout << "insert:" << object_id << endl;
   int position;
   position = chooseLeaf(mbr);
-  cout << "found leaf: " << position << endl;
+  //cout << "found leaf: " << position << endl;
 
   // Create a new node
   int new_node_id = createNewNode();
-  
+  cout << "new obj id:" << new_node_id <<endl;
   setMBR(new_node_id, mbr);
   setParent(new_node_id, position);
   setObjectID(new_node_id,-1*object_id);
-
+  
   // Add new node to child list
   addChild(position, new_node_id);
 
   // Expend mbr all the way to root
-  recursiveExpend(position, mbr);
+  recursiveMBRAdjust(position);
 
   // Split if necessary
   adjustTree(position);
 
-  cout << "new obj id:" << new_node_id <<endl;
   //printNode(root_node);
   //printNode(new_node_id);
 }
@@ -129,32 +128,26 @@ float RTree::calculateExpand(MBR new_mbr, int node)
 }
 
 // Expand mbr recursively to root
-void RTree::recursiveExpend(int node, MBR mbr)
+void RTree::recursiveMBRAdjust(int node)
 {
   while (node != -1)
   {
-    expand(node, mbr);
+    int numOfChild = 0;
+    int * childList;
+    getChildList(node, numOfChild,childList);
+    MBR mbr = merge_group_mbr(childList, numOfChild);
+    setMBR(node, mbr);
     node = getParent(node);
   }
 }
 
-// Expand node by adding mbr
-void RTree::expand(int node, MBR mbr)
-{
-  MBR node_mbr = getMBR(node);
-  node_mbr.x1 = min(node_mbr.x1, mbr.x1);
-  node_mbr.y1 = min(node_mbr.y1, mbr.y1);
-  node_mbr.x2 = max(node_mbr.x2, mbr.x2);
-  node_mbr.y2 = max(node_mbr.y2, mbr.y2);
-  setMBR(node, node_mbr);
-}
 
 // Adjust Tree by checking from node
 void RTree::adjustTree(int node)
 {
   while (node != root_node && getNumOfChild(node) >= M)
   {
-    cout << "split:" << node  << endl;
+    //cout << "split:" << node  << endl;
     int new_node = split(node);
     int parent = getParent(node);
     setParent(new_node, parent);
@@ -163,7 +156,7 @@ void RTree::adjustTree(int node)
 
   }
   if (node == root_node && getNumOfChild(node) >= M) {
-    cout << "split root" << endl; 
+    //cout << "split root" << endl; 
     int new_node = split(node);
     int new_root = createNewNode();
     MBR new_root_mbr = merge_two_nodes(new_node, node);
@@ -174,18 +167,24 @@ void RTree::adjustTree(int node)
     setParent(node, new_root);
     setParent(new_node, new_root);
 
-    cout << "new root:" << new_root << endl;
-    cout << "new node:" << new_node << endl;
-    cout << "old_root:" << node << endl;
-
+    root_node = new_root;
+    //cout << "new root:" << new_root << endl;
+    //printNode(new_root);
+    //cout << "new node:" << new_node << endl;
+    //printNode(new_node);
+    //cout << "old_root:" << node << endl;
+    //printNode(node);
   }
 }
 
 // Merge the mbr of two node and return
 MBR RTree::merge_two_nodes(int node1, int node2)
 {
+  
   MBR mbr1 = getMBR(node1);
   MBR mbr2 = getMBR(node2);
+  if (getMBRArea(mbr1) == 0) return mbr2;
+  if (getMBRArea(mbr2) == 0) return mbr1;
   MBR result;
   result.x1 = min(mbr1.x1, mbr2.x1);
   result.y1 = min(mbr1.y1, mbr2.y1);
@@ -210,7 +209,9 @@ int RTree::split(int node)
   for (int i =0; i <numOfChild; i++)
   {
     all_child.insert(childList[i]);
+    cout << childList[i];
   }
+  cout << endl;
   set<int> A = split_two_groups(numOfChild, childList, all_child);
   set<int> B = get_complement(numOfChild, childList, A);
 
@@ -219,87 +220,116 @@ int RTree::split(int node)
   //update mbr of node
   MBR mbr = merge_group_mbr(A);
   setMBR(node, mbr);
-  setNumOfChild(node, A.size());
+  //cout << "A size = " << A.size() << endl;
+  setNumOfChild(node, 0);
   for (set<int>::iterator it=A.begin();it!=A.end();++it){
     addChild(node, *it);
+  
   }
-
+  
+ 
   //create a new node
   int new_node = createNewNode();
   mbr = merge_group_mbr(B);
   setMBR(new_node, mbr);
-  setNumOfChild(new_node, B.size());
+  //cout << "B size = " << B.size() << endl;
+  setNumOfChild(new_node, 0);
 
   //update node's child to B
   for (set<int>::iterator it=B.begin();it!=B.end();++it){
     setParent(*it, new_node);
     addChild(new_node, *it);
   }  
+  
   return new_node;
 }
 
 // Find best split
 set<int> RTree::split_two_groups(int numOfChild, int * childList, set<int> & all_child)
 {
-  set<int> temp; 
-  set<int> best; 
-  split_helper(numOfChild, childList, 0, temp, best);
-  return best;
+  set<int> temp;  
+  return split_helper(numOfChild, childList, 0, temp);
+   
 }
 
 // Split helper for split_two_groups
-int RTree::split_helper(int numOfChild, int * childList, int curr, set<int> &temp, set<int> & best)
+set<int> RTree::split_helper(int numOfChild, int * childList, int curr, set<int> &temp)
 {
   if (curr == numOfChild) {
-    //evaluate current split
-    set<int> comp = get_complement(numOfChild, childList, temp);
-    //calculate area of comp and temp
-    MBR mbr1 = merge_group_mbr(comp);
-    MBR mbr2 = merge_group_mbr(temp);
-    int area1 = (mbr1.x2 - mbr1.x1) * (mbr1.y2 - mbr1.y1);
-    int area2 = (mbr2.x2 - mbr2.x1) * (mbr2.y2 - mbr2.y1);
-    return area1 + area2;
+    set<int> best(temp);
+    return best;
   }
+ 
+
   set<int> best1;
+  int area1 = 0;
   set<int> best2;
+  int area2 = 0;
   //choose curr
   temp.insert(childList[curr]);
-  int area1 = split_helper(numOfChild, childList, curr + 1, temp, best1);
-  //not choose curr
+  //if (temp.size() >= m && temp.size() <= M)
+  {  
+    best1 = split_helper(numOfChild, childList, curr + 1, temp);
+    area1 = get_two_splited_area(numOfChild, childList, best1);
+   
+  }
+    //not choose curr
   temp.erase(childList[curr]);
-  int area2 = split_helper(numOfChild, childList, curr + 1, temp, best2);
-
-  if (area1 < area2) {
-
-    best = best1;
-    return area1;
-  } else {
-    best = best2;
-    return area2;
+  //if (temp.size() >= m && temp.size() <= M)
+  {
+    best2 = split_helper(numOfChild, childList, curr + 1, temp);
+    area2 = get_two_splited_area(numOfChild, childList, best2);
   }
 
+  //cout << "area1" << area1 <<endl;
+  //cout << "area2" << area2 <<endl;
+  if (area1 < area2) {
+    return best1;
+  } else {
+    return best2;
+  }
+
+}
+
+// Get area of a split
+int RTree::get_two_splited_area(int numOfChild, int * childList, set<int> &temp)
+{
+
+  //evaluate current split
+  set<int> comp = get_complement(numOfChild, childList, temp);
+  MBR mbr1 = merge_group_mbr(comp);
+  MBR mbr2 = merge_group_mbr(temp);
+
+  int area1 = getMBRArea(mbr1);
+  int area2 = getMBRArea(mbr2);
+  return area1 + area2;
 }
 
 
 // Merge a group of node into a mbr
 MBR RTree::merge_group_mbr(set<int> nodes)
 {
-  MBR mbr;
+  MBR mbr(0,0,0,0);
+  if (nodes.size() == 0)
+    return mbr;
   float new_x1 = FLT_MAX ;
   float new_y1 = FLT_MAX ;
   float new_x2 = FLT_MIN ;
   float new_y2 = FLT_MIN ;
   for (set<int>::iterator it=nodes.begin();it!=nodes.end();++it){
     MBR cur = getMBR(*it);
-    new_x1 = min(new_x1,cur.x1);
-    new_y1 = min(new_y1,cur.y1);
-    new_x2 = max(new_x2,cur.x2);
-    new_y2 = max(new_y2,cur.y2);
+    if (getMBRArea(cur) > 0)
+    {
+      new_x1 = min(new_x1,cur.x1);
+      new_y1 = min(new_y1,cur.y1);
+      new_x2 = max(new_x2,cur.x2);
+      new_y2 = max(new_y2,cur.y2);
+    }
   }
-  mbr.x1=new_x1;
-  mbr.y1=new_y1;
-  mbr.x2=new_x2;
-  mbr.y2=new_y2;
+  mbr.x1 = new_x1;
+  mbr.y1 = new_y1;
+  mbr.x2 = new_x2;
+  mbr.y2 = new_y2;
   return mbr;
 }
 
@@ -325,20 +355,24 @@ set<int> RTree::get_complement(int numOfChild, int * all_child, set<int> & A)
 
 
 
-void RTree::DeleteEntry(int object_id, MBR mbr){
+void RTree::deleteEntry(int object_id, MBR mbr){
   int target_node_id = -1;
   set<int> all_overlap_object = findOverlap(mbr);
   for (set<int>::iterator it=all_overlap_object.begin();it!=all_overlap_object.end();++it){
-    int temp = getObjectID(*it);
+    int temp = -1 * getObjectID(*it);
     if (temp == object_id) {
       target_node_id = *it;
     }
   }
   if (target_node_id == -1) {
+    cout << "OBJECT not found!" <<endl;
     return;
   }
+  
+  cout << "target=" << target_node_id << endl;
 
   removeChild(getParent(target_node_id), target_node_id);
+  recursiveMBRAdjust(getParent(target_node_id));
   condenseTree(getParent(target_node_id));
   
   int numOfChild = 0;
@@ -355,8 +389,10 @@ void RTree::DeleteEntry(int object_id, MBR mbr){
 set<int> RTree::findOverlap(MBR mbr){
   set<int> result;
   stack<int> s;
+  printNode(root_node);
   if (isOverlap(root_node, mbr)) {
     s.push(root_node);
+    cout << "push root" << endl;
   }
   while (!s.empty()){
     int temp = s.top();
@@ -366,14 +402,15 @@ set<int> RTree::findOverlap(MBR mbr){
     int numOfChild;
     int * childList;
     getChildList(temp, numOfChild, childList);
-   
+    
     for (int i = 0; i < numOfChild; i++) {
         if (isOverlap(childList[i], mbr)){
           if (isLeaf(temp)){
             result.insert(childList[i]);
           } else { //not leaf
             s.push(childList[i]);
-          }
+	    cout << "push:" <<childList[i] <<endl;
+	  }
         }
     }
   }
@@ -400,6 +437,7 @@ bool RTree::isOverlap(int node1, MBR mbr2)
 
 // Adjust tree after delete
 void RTree::condenseTree(int L){
+  cout << "condense:" << L << endl;
   int N = L;
   vector<int> level;
   vector<set<int>> Q;
@@ -408,10 +446,10 @@ void RTree::condenseTree(int L){
 
     int numOfChild = 0;
     int * childList;
-    getChildList(root_node, numOfChild, childList);
+    getChildList(N, numOfChild, childList);
 
     if (numOfChild < m) {
-      if (N == L) {
+      if (N == L) { // leaf level
         set<int> tQ;
         level.push_back(-1);
         for (int i = 0; i < numOfChild; i++){
@@ -454,7 +492,10 @@ void RTree::condenseTree(int L){
 // Merge a group of node into a mbr
 MBR RTree::merge_group_mbr(int * nodes, int n)
 {
-  MBR mbr;
+  MBR mbr(0,0,0,0);
+  if (n == 0) {
+    return mbr;
+  }
   float new_x1 = FLT_MAX ;
   float new_y1 = FLT_MAX ;
   float new_x2 = FLT_MIN ;
@@ -695,11 +736,19 @@ void RTree::setNumOfChild(int node, int numOfChild)
   *iData = numOfChild;
 }
 
+int RTree::getMBRArea(MBR mbr)
+{
+  int x = mbr.x2 - mbr.x1;
+  int y = mbr.y2 - mbr.y1;
+  return x * y;
+
+}
+
 void RTree::printNode(int node)
 {
   if (isObject(node))
   {
-    cout << "OBJECT" << endl;
+    cout << "[OBJECT " << node << "]" << endl;
     MBR mbr = getMBR(node);
     cout << "MBR:" << mbr.x1 << ","
 	 << mbr.y1 << ","
@@ -708,7 +757,7 @@ void RTree::printNode(int node)
     cout << "Parent:" << getParent(node) << endl;
     cout << "Object ID:" << (int)(getObjectID(node) * -1) << endl;
   } else {
-    cout << "NODE" <<endl;
+    cout << "[NODE " << node << "]" <<endl;
     MBR mbr = getMBR(node);
     cout << "MBR:" << mbr.x1 <<","
 	 << mbr.y1 << ","

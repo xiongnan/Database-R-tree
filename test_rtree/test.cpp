@@ -15,14 +15,26 @@ int  main(){
   RTree rtree(fileHandle);
   rtree.createTree();
   
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 5; i++) {
     MBR mbr1(1+i,1+i,2+i,2+i);
     int id1 = i+1;
     rtree.insertEntry(id1, mbr1);
   }
 
-  for (int i = 1; i < 10; i++) {
-    //  rtree.printNode(i);
+ 
+  for (int i = 0; i < 8; i++) {
+    cout << endl;
+    rtree.printNode(i);
+  }
+  cout << "-------------" << endl;
+  
+  rtree.deleteEntry(4, MBR(4,4,5,5));
+  
+  
+  for (int i = 0; i < 8; i++) {
+    if (i == 1) continue;
+    cout << endl;
+    rtree.printNode(i);
   }
   return 0;
   

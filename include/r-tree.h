@@ -38,7 +38,7 @@ class RTree {
   RTree(PF_FileHandle fileHandle);
   void createTree();
   void insertEntry(int object_id, MBR mbr);
-  void DeleteEntry(int object_id, MBR mbr);
+  void deleteEntry(int object_id, MBR mbr);
   
 
   // For debug                                                                                       
@@ -47,7 +47,7 @@ class RTree {
   int m;
   int M;
   
- private:
+  //private:
   
   // Store the root node id
   int root_node;
@@ -65,9 +65,7 @@ class RTree {
   // Calculate the expended size if adding new_mbr to node
   float calculateExpand(MBR object, int node);
   // Expand mbr recursively to root
-  void recursiveExpend(int node, MBR mbr);
-  // Expand node by adding mbr
-  void expand(int node, MBR mbr);
+  void recursiveMBRAdjust(int node);
   // Adjust Tree by checking from node
   void adjustTree(int node);
   // Split node into two nodes
@@ -75,7 +73,9 @@ class RTree {
   // Find best split
   set<int> split_two_groups(int numOfChild, int * childList, set<int> & all_child);
   // Split helper for split_two_groups
-  int split_helper(int numOfChild, int * childList, int curr, set<int> &temp, set<int> & best);
+  set<int> split_helper(int numOfChild, int * childList, int curr, set<int> &temp);
+  // Get area of a split
+  int get_two_splited_area(int numOfChild, int * childList, set<int> &temp);
   // Merge the mbr of two node and return
   MBR merge_two_nodes(int node1, int node2);
   // Merge a group of node into a mbr
@@ -111,6 +111,7 @@ class RTree {
   // MBR-related
   MBR getMBR(int node);
   void setMBR(int node, MBR mbr);
+  int getMBRArea(MBR mbr);
 
   // Parent-related
   int getParent(int node);
